@@ -39,28 +39,28 @@ sma_result_t sma(enum Action action, ...)
         ret.handle->sma = 0.0;
         ret.handle->sum = 0.0;
         ret.handle->period = va_arg(vl, int);
-        ret.handle->values = malloc(r.handle->period * sizeof(double));
+        ret.handle->values = malloc(ret.handle->period * sizeof(double));
         ret.handle->index = 0;
         break;
     case SMA_FREE:
         ret.handle = va_arg(vl, sma_obj_t *);
-        free(r.handle->values);
-        free(r.handle);
-        r.handle = NULL;
+        free(ret.handle->values);
+        free(ret.handle);
+        ret.handle = NULL;
         break;
     case SMA_VALUES:
         obj = va_arg(vl, sma_obj_t *);
         ret.values = obj->values;
         break;
     case SMA_MEAN:
-        obj = va_arg(vl, sma_result *);
+        obj = va_arg(vl, sma_obj_t *);
         ret.sma = obj->sma;
         break;
     case SMA_ADD:
         obj = va_arg(vl, sma_obj_t *);
         val = va_arg(vl, double);
         if (obj->index < obj->period) {
-            obj->values[o->index++] = val;
+            obj->values[obj->index++] = val;
             obj->sum += val;
             obj->sma = obj->sum / obj->index;
         } else {
@@ -86,7 +86,7 @@ int main(int argc, char const *argv[])
 
     for (i = 0; i < sizeof(val)/sizeof(double); i++) {
         printf(
-            "next number %lf, SMA_3 = %lf, SMA_5 = %ls\n",
+            "next number %lf, SMA_3 = %lf, SMA_5 = %lf\n",
             val[i],
             sma(SMA_ADD, h3, val[i]).sma,
             sma(SMA_ADD, h5, val[i]).sma
