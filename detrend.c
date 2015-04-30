@@ -1,143 +1,79 @@
 #include <stdio.h>
-
-double src_data[100] = {
-   0.000000,
-   0.087156,
-   0.173648,
-   0.258819,
-   0.342020,
-   0.422618,
-   0.500000,
-   0.573576,
-   0.642788,
-   0.707107,
-   0.766044,
-   0.819152,
-   0.866025,
-   0.906308,
-   0.939693,
-   0.965926,
-   0.984808,
-   0.996195,
-   1.000000,
-   0.996195,
-   0.984808,
-   0.965926,
-   0.939693,
-   0.906308,
-   0.866025,
-   0.819152,
-   0.766044,
-   0.707107,
-   0.642788,
-   0.573576,
-   0.500000,
-   0.422618,
-   0.342020,
-   0.258819,
-   0.173648,
-   0.087156,
-   0.000000,
-   -0.087156,
-   -0.173648,
-   -0.258819,
-   -0.342020,
-   -0.422618,
-   -0.500000,
-   -0.573576,
-   -0.642788,
-   -0.707107,
-   -0.766044,
-   -0.819152,
-   -0.866025,
-   -0.906308,
-   -0.939693,
-   -0.965926,
-   -0.984808,
-   -0.996195,
-   -1.000000,
-   -0.996195,
-   -0.984808,
-   -0.965926,
-   -0.939693,
-   -0.906308,
-   -0.866025,
-   -0.819152,
-   -0.766044,
-   -0.707107,
-   -0.642788,
-   -0.573576,
-   -0.500000,
-   -0.422618,
-   -0.342020,
-   -0.258819,
-   -0.173648,
-   -0.087156,
-   -0.000000,
-   0.087156,
-   0.173648,
-   0.258819,
-   0.342020,
-   0.422618,
-   0.500000,
-   0.573576,
-   0.642788,
-   0.707107,
-   0.766044,
-   0.819152,
-   0.866025,
-   0.906308,
-   0.939693,
-   0.965926,
-   0.984808,
-   0.996195,
-   1.000000,
-   0.996195,
-   0.984808,
-   0.965926,
-   0.939693,
-   0.906308,
-   0.866025,
-   0.819152,
-   0.766044,
-   0.707107,
-};
+#include <stdlib.h>
+#include "vector.h"
 
 int i, j;
 int break_point = 1;
 int break_points[2];
 int length_bps = 0;
-int ret = 0;
 
-int *unique(int *src, size_t count)
+int * unique(int *src, size_t count)
 {
-    int i;
-    printf("the array length is: %zu\n", count);
+    Vector vector;
+    vector_init(&vector);
+    int i, j, index, candidate;
+    printf("the array length is: %d\n", count);
+    for (i = 0; i < count; i++)
+    {
+        int hit_stat = 0;
+        for (j = 0; j < i; j++)
+        {
+            if (src[j] == src[i])
+                hit_stat = 1;
+        }
+        if (!hit_stat)
+        {
+            index++;
+            vector_append(&vector, src[i]);
+        }
+    }
 
+    int *ret;
+    ret = malloc(sizeof(int) * index);
+    for (i = 0; i < index; i++)
+        ret[i] = vector_get(&vector, i);
+
+    vector_free(&vector);
+    return ret;
+}
+
+void dump_array(double src[][2], int m, int n)
+{
+    printf("dump array\n");
+    int i, j;
+    for (i = 0; i < m; i++)
+    {
+        for (j = 0; j < n; j++)
+        {
+            printf("%f\n", src[i][j]);
+        }
+    }
+}
+
+int detrend(double *src, size_t count)
+{
+    int N = count;
+    printf("count: %d\n", count);
+    int bp[2] = {1, N};
+    length_bps = sizeof(bp)/sizeof(*bp);
+
+    double a[N][2];
+    for (i = 0; i < N; i++)
+    {
+        a[i][0] = i/(double)N;
+        a[i][1] = 1;
+    }
+    dump_array(a, N, 2);
+    // for (i = 0; i < N; i++)
+    //    printf("%f\n", a[i][0]);
     return 0;
 }
-/*
-int detrend()
-{
-    N = sizeof(raw);
-    break_points = {break_point, N};
-    length_bps = sizeof(bp);
-    int curve[N][2];
-    for (i = 0; i < N; i++)
-    {
-        curve[i][0] = i/N;
-    }
-    for (i = 0; i < N; i++)
-    {
-        curve[i][1] = 1;
-    }
-
-}*/
 
 int main(int argc, char const *argv[])
 {
-    int value[] = {1, 2, 3, 4, 5};
-    unique(value, sizeof(value)/sizeof(*value));
+    double value[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    detrend(value, sizeof(value)/sizeof(*value));
+    // unique(value, sizeof(value)/sizeof(int));
     //int ret[] = unique(value);
     /* code */
     return 0;
