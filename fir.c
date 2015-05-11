@@ -40,50 +40,34 @@ double * my_fir1(unsigned N, double Wn)
         b[0] = 2 * c1;
 
     for (i=0; i < nhlf; i++)
-    {
         xn[i] = i + 0.5 * (1 - odd);
-    }
 
     for (i=0; i < nhlf; i++)
-    {
         c[i] = PI * xn[i];
-    }
 
     for (i=0; i < nhlf; i++)
-    {
         c3[i] = 2 * c1 * c[i];
-    }
 
     /* b(i1:nhlf)=(sin(c3)./c) */
     for (i=0; i < nhlf; i++)
-    {
         b[i] = sin(c3[i]) / c[i];
-    }
 
     /* bb = real([b(nhlf:-1:i1) b(1:nhlf)].*wind(:)') */
     for (i=0,j=nhlf-1; i < nhlf; i++, j--)
-    {
         bb[i] = b[j];
-    }
+
     for (i=nhlf,j=0; i < Pr_L; i++,j++)
-    {
         bb[i] = b[j];
-    }
+
     for (i=0; i < Pr_L; i++)
-    {
         bb[i] = bb[i] * wind[i];
-    }
 
     /* gain = abs(polyval(b,1)); */
     for (i=0; i < Pr_L; i++)
-    {
         gain += bb[i];
-    }
     /* b = b / gain */
     for (i=0; i < Pr_L; i++)
-    {
         bb[i] = bb[i] / gain;
-    }
 
     return bb;
 
@@ -98,11 +82,11 @@ int main (void)
     Prot_filt = my_fir1(Pr_L-1, 1/(double)M); /* FIR filter */
 
     for(i=0; i < Pr_L; i++)
-    {
         Prot_filt[i] = Prot_filt[i] * (M/2);
-    }
 
+    printf("print coefficient: \n");
     for(i=0; i < Pr_L; i++)
-    printf("Prot_filt[%d]=%f\n",i,Prot_filt[i]); /*debug*/
+        // printf("Prot_filt[%d]=%f\n",i,Prot_filt[i]); /*debug*/
+        printf("%f\n", Prot_filt[i]);
 
 }
