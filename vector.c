@@ -13,7 +13,7 @@ void vector_init(Vector *vector) {
   vector->data = malloc(sizeof(int) * vector->capacity);
 }
 
-void vector_append(Vector *vector, int value) {
+void vector_append(Vector *vector, double value) {
   // make sure there's room to expand into
   vector_double_capacity_if_full(vector);
 
@@ -21,15 +21,21 @@ void vector_append(Vector *vector, int value) {
   vector->data[vector->size++] = value;
 }
 
-int vector_get(Vector *vector, int index) {
+double vector_get(Vector *vector, int index) {
   if (index >= vector->size || index < 0) {
-    printf("Index %d out of bounds for vector of size %d\n", index, vector->size);
+    printf("Index %d out of bounds for vector of size %d\n",
+     index,
+     vector->size);
     exit(1);
   }
   return vector->data[index];
 }
 
-void vector_set(Vector *vector, int index, int value) {
+double * vector_getAll(Vector *vector) {
+  return vector->data;
+}
+
+void vector_set(Vector *vector, int index, double value) {
   // zero fill the vector up to the desired index
   while (index >= vector->size) {
     vector_append(vector, 0);
@@ -49,4 +55,12 @@ void vector_double_capacity_if_full(Vector *vector) {
 
 void vector_free(Vector *vector) {
   free(vector->data);
+}
+
+int main(int argc, char const *argv[])
+{
+  double raw[5] = { 1.22, 0.95, 0.54, -0.64, -0.91,};
+  Vector vector;
+  vector_init(&vector);
+  return 0;
 }
