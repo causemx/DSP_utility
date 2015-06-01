@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define ORDER 255
-#define NP 1001
+#define ORDER 49
+#define NP 125
 
 int filter(int,float *,float *,int,float *,float *);
 
@@ -17,7 +17,7 @@ int filter(int ord, float *a, float *b, int np, float *x, float *y)
         for (j = 0;j < i; j++)
             y[i] = y[i] - a[j+1] * y[i-j-1];
     }
-    /* end of initial part */
+    // end of initial part
     for (i = ord+1; i < np+1; i++) {
         y[i] = 0.0;
         for (j = 0; j < ord+1; j++)
@@ -25,6 +25,7 @@ int filter(int ord, float *a, float *b, int np, float *x, float *y)
         for (j = 0;j < ord; j++)
             y[i] = y[i] - a[j+1] * y[i-j-1];
     }
+
     return 0;
 } /* end of filter */
 
@@ -33,14 +34,15 @@ int main(int argc, char const *argv[])
     int i, j;
     FILE *fp;
     float x[NP], y[NP];
-    float a[ORDER+1], b[OREDER+1];
-    fp = fopen("fir_coeff.log", "r");
+    float a[ORDER+1], b[ORDER+1];
+    fp = fopen("fir.log", "r");
     if (fp == NULL) {
         printf("\n coefficient file not found! \n");
         exit(-1);
     }
     for (i = 0; i < ORDER+1; i++) {
-        a[i] = (i == 0) ? 1 : 0;
+        // a[i] = (i == 0) ? 1 : 0;
+        a[i] = 1.0;
     }
     for (i = 0; i < ORDER+1; i++) {
         fscanf(fp, "%f", &b[i]);
@@ -61,13 +63,8 @@ int main(int argc, char const *argv[])
     }
     fclose(fp);
 
-    /*  test coef from
-     [b,a]=butter(3,30/500);  in MATLAB
-    */
-    // float a[ORDER+1] = {1.0000, -2.6236, 2.3147, -0.6855};
-    // float b[ORDER+1] = {0.0007, 0.0021, 0.0021, 0.0007};
-
     filter(ORDER,a,b,NP,x,y);
+
     /* NOW y=filter(b,a,x);*/
 #if 0
     /* reverse the series for FILTFILT */
@@ -91,6 +88,8 @@ int main(int argc, char const *argv[])
         printf("\n file cannot be created! \n");
         exit(-1);
     }
+
+
     fclose(fp);
     return 0;
 }
