@@ -5,7 +5,7 @@
 #define PI 3.14159265
 #define L 256 /* Filter length */
 #define Pr_L L
-#define M 64
+#define M 3.125
 
 double * my_fir1(unsigned N, double Wn)
 {
@@ -79,10 +79,11 @@ int main (void)
     double *Prot_filt;
     Prot_filt = (double *) malloc(sizeof(double) * Pr_L);
 
-    Prot_filt = my_fir1(Pr_L-1, 1/(double)M); /* FIR filter */
+    Prot_filt = my_fir1(Pr_L-1, 0.8); /* FIR filter */
 
+/*
     for(i=0; i < Pr_L; i++)
-        Prot_filt[i] = Prot_filt[i] * (M/2);
+        Prot_filt[i] = Prot_filt[i] * (M/2);*/
 
     printf("print coefficient: \n");
     for(i=0; i < Pr_L; i++)
