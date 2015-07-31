@@ -56,6 +56,7 @@ double raw_data[50] = {
 
 void dump_array(int *src, size_t count)
 {
+    printf("start dumping array...\n");
     int i;
     for (i = 0; i < count; i++) {
         printf("index: %d, value: %d\n", i, src[i]);
@@ -97,7 +98,7 @@ int copy_array(int *src, int *target, size_t length)
 
 #define ARRAY_INITIAL_TORRENT 100
 
-int findpeaks(double *val, int count)
+int findpeaks(double *val, int count, int width)
 {
     int i = 0;
     int dx_length = count - 1;
@@ -172,12 +173,13 @@ int findpeaks(double *val, int count)
     // dump_array(rp, count);
 
     /* time to the next fall */
+
     int fp[count], fq[count];
     for (i = 0; i < count; i++)
         fp[i] = -1;
     fp[0] = df[0];
     for (i = 0; i < f_length; i++)
-        fp[r[i]+1] = df[i+1] -1;
+        fp[f[i]+1] = df[i+1] -1;
     cumsum(fp, fq, count);
 
 
@@ -188,16 +190,45 @@ int findpeaks(double *val, int count)
             k[k_index++] = i;
     }
 
-    dump_array(k, k_index);
+    /* find the region which distance over width*/
+
+    int j_index = 0;
+    int *j = malloc(ARRAY_INITIAL_TORRENT * sizeof(int));
+    for (i = 0; i < k_index; i++) {
+        if (k[i+1] - k[i] <= width) {
+            j[j_index++] = k[i];
+        }
+    }
+
+    dump_array(j, j_index);
+
+    int j_diff[j_index-1];
+    for (i = 0; i < j_index-1; i++)
+        j_diff[i] = j[i+1] - j[i];
+
+    int delta_p = 0;
+    for (i = 1; i < j_index-1; i++) {
+        delta_p += j_diff[i-1];
+        printf("delta_p:%d\n", delta_p);
+        if (delta_p <= width) {
+            j[i] = -1;
+        } else {
+            delta_p = 0;
+        }
+    }
+
+    dump_array(j, j_index);
+
 
     free(r);
     free(f);
     free(k);
+    free(j);
     return 0;
 }
 
 int main(int argc, char const *argv[])
 {
-    findpeaks(raw_data, 50);
+    findpeaks(raw_data, 50, 10);
     return 0;
 }

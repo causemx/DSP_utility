@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define ORDER 5
+#define ORDER 50
 #define NP 125
 #define ARGU_NUM 4
 
@@ -11,7 +11,7 @@ int filter(int ord, float *a, float *b, int np, float *x, float *y)
 {
     int i, j;
     y[0] = b[0] * x[0];
-    for (i = 1; i < ord; i++) {
+    for (i = 0; i < ord; i++) {
         y[i] = 0.0;
         for (j = 0;j < i; j++)
             y[i] = y[i] + b[j] * x[i-j];
@@ -32,7 +32,7 @@ int filter(int ord, float *a, float *b, int np, float *x, float *y)
 
 int do_help()
 {
-    printf("usage: filter.exe [filter file] [input data] [output data]");
+    printf("usage: filter.exe [filter coefficient] [input data] [output data]");
     return 0;
 }
 
@@ -52,7 +52,7 @@ int main(int argc, char const *argv[])
         outputfile_name = argv[ARGU_NUM-1];
     }
 
-    printf("%s, %s, %s\n", fir_coef, inputfile_name, outputfile_name);
+    // printf("%s, %s, %s\n", fir_coef, inputfile_name, outputfile_name);
 
     int i, j;
     FILE *fp;
