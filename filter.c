@@ -32,7 +32,7 @@ int filter(int ord, float *a, float *b, int np, float *x, float *y)
 
 int do_help()
 {
-    printf("usage: filter.exe [filter coefficient] [input data] [output data]");
+    printf("usage: filter.exe [filter coefficient] [input data] [output data]\n");
     return 0;
 }
 

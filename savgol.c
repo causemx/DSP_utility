@@ -12,159 +12,6 @@ static float minarg1,minarg2;
 #define FMIN(a,b) (minarg1=(a),minarg2=(b),(minarg1) < (minarg2) ?\
         (minarg1) : (minarg2))
 
-float samples[150] = {
-1.0000,
-0.9442,
-0.7831,
-0.5346,
-0.2265,
--0.1069,
--0.4283,
--0.7020,
--0.8974,
--0.9926,
--0.9772,
--0.8527,
--0.6331,
--0.3429,
--0.0144,
-0.3157,
-0.6105,
-0.8373,
-0.9706,
-0.9957,
-0.9097,
-0.7222,
-0.4542,
-0.1354,
--0.1984,
--0.5101,
--0.7649,
--0.9343,
--0.9996,
--0.9533,
--0.8007,
--0.5588,
--0.2545,
-0.0782,
-0.4021,
-0.6812,
-0.8843,
-0.9887,
-0.9829,
-0.8674,
-0.6551,
-0.3698,
-0.0432,
--0.2882,
--0.5875,
--0.8212,
--0.9633,
--0.9980,
--0.9213,
--0.7418,
--0.4796,
--0.1639,
-0.1701,
-0.4851,
-0.7460,
-0.9237,
-0.9983,
-0.9616,
-0.8176,
-0.5824,
-0.2822,
--0.0494,
--0.3756,
--0.6598,
--0.8705,
--0.9840,
--0.9878,
--0.8814,
--0.6766,
--0.3964,
--0.0719,
-0.2605,
-0.5639,
-0.8044,
-0.9552,
-0.9994,
-0.9321,
-0.7608,
-0.5047,
-0.1923,
--0.1416,
--0.4597,
--0.7265,
--0.9123,
--0.9963,
--0.9691,
--0.8339,
--0.6056,
--0.3097,
-0.0206,
-0.3487,
-0.6379,
-0.8559,
-0.9785,
-0.9919,
-0.8946,
-0.6975,
-0.4227,
-0.1006,
--0.2326,
--0.5399,
--0.7870,
--0.9463,
--1.0000,
--0.9421,
--0.7792,
--0.5294,
--0.2204,
-0.1131,
-0.4339,
-0.7064,
-0.9001,
-0.9934,
-0.9758,
-0.8494,
-0.6283,
-0.3370,
-0.0082,
--0.3216,
--0.6155,
--0.8407,
--0.9721,
--0.9951,
--0.9071,
--0.7179,
--0.4486,
--0.1293,
-0.2045,
-0.5154,
-0.7689,
-0.9366,
-0.9997,
-0.9514,
-0.7969,
-0.5536,
-0.2485,
--0.0844,
--0.4078,
--0.6857,
--0.8872,
--0.9896,
--0.9817,
--0.8643,
--0.6504,
--0.3640,
--0.0370,
-0.2942,
-0.5925,
-0.8247,
-0.9650
-};
-
 float *vector();
 int *ivector();
 float **matrix();
@@ -175,6 +22,37 @@ void free_matrix();
 
 void lubksb(float **a, int n, int *indx, float b[]);
 void ludcmp(float **a, int n, int *indx, float *d);
+
+#if 0
+int convolve1D(float* in, float* out, int dataSize, float* kernel, int kernelSize)
+{
+    int i, j, k;
+
+    // check validity of params
+    if(!in || !out || !kernel) return false;
+    if(dataSize <=0 || kernelSize <= 0) return false;
+
+    // start convolution from out[kernelSize-1] to out[dataSize-1] (last)
+    for(i = kernelSize-1; i < dataSize; ++i)
+    {
+        out[i] = 0;                             // init to 0 before accumulate
+
+        for(j = i, k = 0; k < kernelSize; --j, ++k)
+            out[i] += in[j] * kernel[k];
+    }
+
+    // convolution from out[0] to out[kernelSize-2]
+    for(i = 0; i < kernelSize - 1; ++i)
+    {
+        out[i] = 0;                             // init to 0 before sum
+
+        for(j = i, k = 0; j >= 0; --j, ++k)
+            out[i] += in[j] * kernel[k];
+    }
+
+    return true;
+}
+#endif
 
 float *vector(long nl, long nh)
 /* allocate a float vector with subscript range v[nl..nh] */
@@ -364,9 +242,39 @@ void savgol(float c[], int np, int nl, int nr, int ld, int m)
         free_ivector(indx,1,m+1);
 }
 
+void do_help()
+{
+    printf("\nusage: savgol.exe [input data]\n");
+}
+
 int main(int argc, char const *argv[])
 {
-    float in[11];
-    savgol(in, 11, 5, 5, 0, 2);
+    int i;
+    int input_index = 0;
+    char line[32];
+    char const *input_file;
+    float *input_data = (float *) malloc(sizeof(float)*128);
+
+    FILE *fp;
+
+    if (argc < 2) {
+        do_help();
+        exit(1);
+    } else {
+        input_file = argv[1];
+    }
+
+
+    if((fp = fopen(input_file, "r")) != NULL) {
+        while (fgets(line, sizeof line, fp) != NULL) {
+            input_data[input_index++] = atof(line);
+        }
+    } else {
+        printf("\n file not found! \n");
+        exit(-1);
+    }
+
+
+    savgol(input_data, 11, 5, 5, 0, 2);
     return 0;
 }
