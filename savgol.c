@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 
+#define DEBUG_SAVGOL
 #define NR_END 1
 #define FREE_ARG char*
 #define TINY 1.0e-20;
@@ -232,10 +233,12 @@ void savgol(float c[], int np, int nl, int nr, int ld, int m)
                 c[kk]=sum;
         }
 
+#ifndef DEBUG_SAVGOL
         int i;
         for (i = 1; i < np; i++) {
             printf("%f\n", c[i]);
         }
+#endif
 
         free_vector(b,1,m+1);
         free_matrix(a,1,m+1,1,m+1);
@@ -268,13 +271,17 @@ int main(int argc, char const *argv[])
     if((fp = fopen(input_file, "r")) != NULL) {
         while (fgets(line, sizeof line, fp) != NULL) {
             input_data[input_index++] = atof(line);
+            input_index++;
         }
     } else {
         printf("\n file not found! \n");
         exit(-1);
     }
 
+    float *kernel = (float *) malloc(sizeof(float)*11);
+    savgol(kernel, 11, 5, 5, 0, 2);
+    for (i = 1; i < 11; i++)
+        printf("%f\t", kernel[i]);
 
-    savgol(input_data, 11, 5, 5, 0, 2);
     return 0;
 }
