@@ -23,36 +23,6 @@ void free_matrix();
 void lubksb(float **a, int n, int *indx, float b[]);
 void ludcmp(float **a, int n, int *indx, float *d);
 
-#if 0
-int convolve1D(float* in, float* out, int dataSize, float* kernel, int kernelSize)
-{
-    int i, j, k;
-
-    // check validity of params
-    if(!in || !out || !kernel) return false;
-    if(dataSize <=0 || kernelSize <= 0) return false;
-
-    // start convolution from out[kernelSize-1] to out[dataSize-1] (last)
-    for(i = kernelSize-1; i < dataSize; ++i)
-    {
-        out[i] = 0;                             // init to 0 before accumulate
-
-        for(j = i, k = 0; k < kernelSize; --j, ++k)
-            out[i] += in[j] * kernel[k];
-    }
-
-    // convolution from out[0] to out[kernelSize-2]
-    for(i = 0; i < kernelSize - 1; ++i)
-    {
-        out[i] = 0;                             // init to 0 before sum
-
-        for(j = i, k = 0; j >= 0; --j, ++k)
-            out[i] += in[j] * kernel[k];
-    }
-
-    return true;
-}
-#endif
 
 float *vector(long nl, long nh)
 /* allocate a float vector with subscript range v[nl..nh] */
@@ -119,53 +89,53 @@ void free_matrix(float **m, long nrl, long nrh, long ncl, long nch)
 
 void ludcmp(float **a, int n, int *indx, float *d)
 {
-        int i,imax,j,k;
-        float big,dum,sum,temp;
-        float *vv;
+    int i,imax,j,k;
+    float big,dum,sum,temp;
+    float *vv;
 
-        vv=vector(1,n);
-        *d=1.0;
-        for (i=1;i<=n;i++) {
-                big=0.0;
-                for (j=1;j<=n;j++)
-                        if ((temp=fabs(a[i][j])) > big) big=temp;
-                if (big == 0.0) printf("Singular matrix in routine ludcmp");
-                vv[i]=1.0/big;
+    vv=vector(1,n);
+    *d=1.0;
+    for (i=1;i<=n;i++) {
+        big=0.0;
+        for (j=1;j<=n;j++)
+            if ((temp=fabs(a[i][j])) > big) big=temp;
+        if (big == 0.0) printf("Singular matrix in routine ludcmp");
+        vv[i]=1.0/big;
+    }
+    for (j=1;j<=n;j++) {
+        for (i=1;i<j;i++) {
+            sum=a[i][j];
+            for (k=1;k<i;k++) sum -= a[i][k]*a[k][j];
+                a[i][j]=sum;
         }
-        for (j=1;j<=n;j++) {
-                for (i=1;i<j;i++) {
-                        sum=a[i][j];
-                        for (k=1;k<i;k++) sum -= a[i][k]*a[k][j];
-                        a[i][j]=sum;
-                }
-                big=0.0;
-                for (i=j;i<=n;i++) {
-                        sum=a[i][j];
-                        for (k=1;k<j;k++)
-                                sum -= a[i][k]*a[k][j];
-                        a[i][j]=sum;
-                        if ( (dum=vv[i]*fabs(sum)) >= big) {
-                                big=dum;
-                                imax=i;
-                        }
-                }
-                if (j != imax) {
-                        for (k=1;k<=n;k++) {
-                                dum=a[imax][k];
-                                a[imax][k]=a[j][k];
-                                a[j][k]=dum;
-                        }
-                        *d = -(*d);
-                        vv[imax]=vv[j];
-                }
-                indx[j]=imax;
-                if (a[j][j] == 0.0) a[j][j]=TINY;
-                if (j != n) {
-                        dum=1.0/(a[j][j]);
-                        for (i=j+1;i<=n;i++) a[i][j] *= dum;
-                }
+        big=0.0;
+        for (i=j;i<=n;i++) {
+            sum=a[i][j];
+            for (k=1;k<j;k++)
+                sum -= a[i][k]*a[k][j];
+            a[i][j]=sum;
+            if ( (dum=vv[i]*fabs(sum)) >= big) {
+                big=dum;
+                imax=i;
+            }
         }
-        free_vector(vv,1,n);
+        if (j != imax) {
+            for (k=1;k<=n;k++) {
+                dum=a[imax][k];
+                a[imax][k]=a[j][k];
+                a[j][k]=dum;
+            }
+            *d = -(*d);
+            vv[imax]=vv[j];
+        }
+        indx[j]=imax;
+        if (a[j][j] == 0.0) a[j][j]=TINY;
+        if (j != n) {
+            dum=1.0/(a[j][j]);
+            for (i=j+1;i<=n;i++) a[i][j] *= dum;
+        }
+    }
+    free_vector(vv,1,n);
 }
 
 void lubksb(float **a, int n, int *indx, float b[])
@@ -202,13 +172,14 @@ example: Savitzky-Golay with 40, 2th degree polynomial:
 savgol(data, size(data), int 20, int 20, int 0, int 2)
 **/
 
-void savgol(float c[], int np, int nl, int nr, int ld, int m)
+void savgol(float *c, int np, int nl, int nr, int ld, int m)
 {
         int imj,ipj,j,k,kk,mm,*indx;
         float d,fac,sum,**a,*b;
 
         if (np < nl+nr+1 || nl < 0 || nr < 0 || ld > m || nl+nr < m)
-                printf("bad args in savgol");
+                printf("bad args in savgol\n");
+
         indx=ivector(1,m+1);
         a=matrix(1,m+1,1,m+1);
         b=vector(1,m+1);
@@ -232,15 +203,42 @@ void savgol(float c[], int np, int nl, int nr, int ld, int m)
                 c[kk]=sum;
         }
 
-        int i;
-        for (i = 1; i < np; i++) {
-            printf("%f\n", c[i]);
-        }
 
         free_vector(b,1,m+1);
         free_matrix(a,1,m+1,1,m+1);
         free_ivector(indx,1,m+1);
 }
+
+
+int convolve1D(float* in, float* out, int dataSize, float* kernel, int kernelSize)
+{
+    int i, j, k;
+
+    // check validity of params
+    if(!in || !out || !kernel) return -1;
+    if(dataSize <=0 || kernelSize <= 0) return -1;
+
+    // start convolution from out[kernelSize-1] to out[dataSize-1] (last)
+    for(i = kernelSize-1; i < dataSize; ++i)
+    {
+        out[i] = 0;                             // init to 0 before accumulate
+
+        for(j = i, k = 0; k < kernelSize; --j, ++k)
+            out[i] += in[j] * kernel[k];
+    }
+
+    // convolution from out[0] to out[kernelSize-2]
+    for(i = 0; i < kernelSize - 1; ++i)
+    {
+        out[i] = 0;                             // init to 0 before sum
+
+        for(j = i, k = 0; j >= 0; --j, ++k)
+            out[i] += in[j] * kernel[k];
+    }
+
+    return 1;
+}
+
 
 void do_help()
 {
@@ -250,10 +248,13 @@ void do_help()
 int main(int argc, char const *argv[])
 {
     int i;
+
     int input_index = 0;
     char line[32];
     char const *input_file;
-    float *input_data = (float *) malloc(sizeof(float)*128);
+    float c[11], kernel[10];
+    float *input_data = (float *) malloc(sizeof(float)*256);
+    float output_data[150];
 
     FILE *fp;
 
@@ -268,13 +269,22 @@ int main(int argc, char const *argv[])
     if((fp = fopen(input_file, "r")) != NULL) {
         while (fgets(line, sizeof line, fp) != NULL) {
             input_data[input_index++] = atof(line);
+            input_index++;
         }
     } else {
         printf("\n file not found! \n");
         exit(-1);
     }
 
+    savgol(c, 11, 5, 5, 0, 2);
+    for (i = 0; i < 10; i++)
+        kernel[i] = c[i+1];
 
-    savgol(input_data, 11, 5, 5, 0, 2);
+    convolve1D(input_data, output_data, input_index, kernel, 10);
+    for (i = 0; i < input_index; i++)
+        printf("%f\t, ", output_data[i]);
+
+    free(input_data);
+
     return 0;
 }
