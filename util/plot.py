@@ -1,11 +1,9 @@
 from pylab import *
+from scipy.signal import savgol_filter
 import numpy as np
 import os, sys
 
-with open('samples.log') as f:
-    values = f.read()
-try:
-    x = [float(x) for x in values.split('\n')]
-except:
-    print('some trouble..')
-print(x)
+data = np.loadtxt("samples.log")
+output = savgol_filter(data, 11, 2)
+plot(output)
+show()

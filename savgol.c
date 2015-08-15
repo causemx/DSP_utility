@@ -246,7 +246,6 @@ int convolve1D(float* in, float* out, int dataSize, float* kernel, int kernelSiz
     return 1;
 }
 
-
 void do_help()
 {
     printf("\nusage: savgol.exe [input data]\n");
@@ -259,9 +258,7 @@ int main(int argc, char const *argv[])
     int input_index = 0;
     char line[32];
     char const *input_file;
-    float c[11], kernel[10];
     float *input_data = (float *) malloc(sizeof(float)*256);
-    float output_data[150];
 
     FILE *fp;
 
@@ -283,16 +280,24 @@ int main(int argc, char const *argv[])
         exit(-1);
     }
 
+    float *kernel = (float *) malloc(sizeof(float)*11);
+    savgol(kernel, 11, 5, 5, 0, 2);
 
-    savgol(c, 11, 5, 5, 0, 2);
-    for (i = 0; i < 10; i++)
-        kernel[i] = c[i+1];
-
-    convolve1D(input_data, output_data, input_index, kernel, 10);
+    float *output_data = (float *) malloc(sizeof(float)*150);
+    filter(10, a, c, 150, input_data, output_data);
     for (i = 0; i < input_index; i++)
-        printf("%f\t, ", output_data[i]);
+        printf("%f\n", output_data[i]);
+
+#if 0
+    float *output_data = (float *) malloc(sizeof(float)*150);
+    convolve1D(input_data, output_data, input_index, kernel, 11);
+    for (i = 0; i < input_index; i++)
+        printf("%f\n", output_data[i]);
+#endif
 
     free(input_data);
+    free(output_data);
+    free(kernel);
 
     return 0;
 }
