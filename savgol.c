@@ -258,6 +258,7 @@ int main(int argc, char const *argv[])
     int input_index = 0;
     char line[32];
     char const *input_file;
+
     float *input_data = (float *) malloc(sizeof(float)*256);
 
     FILE *fp;
