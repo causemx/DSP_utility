@@ -3,7 +3,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-#define DEBUG_SAVGOL
+// #define DEBUG_SAVGOL
 #define NR_END 1
 #define FREE_ARG char*
 #define TINY 1.0e-20;
@@ -175,6 +175,7 @@ savgol(data, size(data), int 20, int 20, int 0, int 2)
 
 void savgol(float *c, int np, int nl, int nr, int ld, int m)
 {
+        int i = 0;
         int imj,ipj,j,k,kk,mm,*indx;
         float d,fac,sum,**a,*b;
 
@@ -201,15 +202,13 @@ void savgol(float *c, int np, int nl, int nr, int ld, int m)
                 fac=1.0;
                 for (mm=1;mm<=m;mm++) sum += b[mm+1]*(fac *= k);
                 kk=((np-k) % np)+1;
-                c[kk]=sum;
-        }
-
-#ifndef DEBUG_SAVGOL
-        int i;
-        for (i = 1; i < np; i++) {
-            printf("%f\n", c[i]);
-        }
+                // c[kk]=sum;
+                c[i] = sum;
+#ifdef DEBUG_SAVGOL
+                printf("coef array index: %d, value: %f\n", i, c[i]);
 #endif
+                i++;
+        }
 
         free_vector(b,1,m+1);
         free_matrix(a,1,m+1,1,m+1);
@@ -284,15 +283,11 @@ int main(int argc, char const *argv[])
     float *kernel = (float *) malloc(sizeof(float)*11);
     savgol(kernel, 11, 5, 5, 0, 2);
 
-    float *output_data = (float *) malloc(sizeof(float)*150);
-    filter(10, a, c, 150, input_data, output_data);
-    for (i = 0; i < input_index; i++)
-        printf("%f\n", output_data[i]);
 
-#if 0
     float *output_data = (float *) malloc(sizeof(float)*150);
-    convolve1D(input_data, output_data, input_index, kernel, 11);
-    for (i = 0; i < input_index; i++)
+#if 0
+    convolve1D(input_data, output_data, 150, kernel, 11);
+    for (i = 0; i < 150; i++)
         printf("%f\n", output_data[i]);
 #endif
 
