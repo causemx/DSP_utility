@@ -15,7 +15,7 @@ void ludcmp(float **a, int n, int *indx, float *d);
 void savgol(float *c, int np, int nl, int nr, int ld, int m);
 float *convolve(float *A, float *B, int lenA, int lenB, int *lenC);
 
-double * fir_coef(unsigned, double, int);
+float * fir_coef(unsigned, float, int);
 int filter(int, float *, float *, int, float *, float *);
 
 #endif

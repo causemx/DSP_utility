@@ -127,23 +127,23 @@ void ludcmp(float **a, int n, int *indx, float *d)
 
 void lubksb(float **a, int n, int *indx, float b[])
 {
-        int i,ii=0,ip,j;
-        float sum;
+    int i,ii=0,ip,j;
+    float sum;
 
-        for (i=1;i<=n;i++) {
-                ip=indx[i];
-                sum=b[ip];
-                b[ip]=b[i];
-                if (ii)
-                        for (j=ii;j<=i-1;j++) sum -= a[i][j]*b[j];
-                else if (sum) ii=i;
-                b[i]=sum;
-        }
-        for (i=n;i>=1;i--) {
-                sum=b[i];
-                for (j=i+1;j<=n;j++) sum -= a[i][j]*b[j];
-                b[i]=sum/a[i][i];
-        }
+    for (i=1;i<=n;i++) {
+        ip=indx[i];
+        sum=b[ip];
+        b[ip]=b[i];
+        if (ii)
+            for (j=ii;j<=i-1;j++) sum -= a[i][j]*b[j];
+        else if (sum) ii=i;
+        b[i]=sum;
+    }
+    for (i=n;i>=1;i--) {
+        sum=b[i];
+        for (j=i+1;j<=n;j++) sum -= a[i][j]*b[j];
+        b[i]=sum/a[i][i];
+    }
 }
 
 /**
@@ -161,48 +161,58 @@ savgol(data, size(data), int 20, int 20, int 0, int 2)
 
 void savgol(float *c, int np, int nl, int nr, int ld, int m)
 {
-        int i = 0;
-        int imj,ipj,j,k,kk,mm,*indx;
-        float d,fac,sum,**a,*b;
+    int i = 0;
+    int imj,ipj,j,k,kk,mm,*indx;
+    float d,fac,sum,**a,*b;
 
-        if (np < nl+nr+1 || nl < 0 || nr < 0 || ld > m || nl+nr < m)
-                printf("bad args in savgol\n");
+    if (np < nl+nr+1 || nl < 0 || nr < 0 || ld > m || nl+nr < m)
+        printf("bad args in savgol\n");
 
-        indx=ivector(1,m+1);
-        a=matrix(1,m+1,1,m+1);
-        b=vector(1,m+1);
-        for (ipj=0;ipj<=(m << 1);ipj++) {
-                sum=(ipj ? 0.0 : 1.0);
-                for (k=1;k<=nr;k++) sum += pow((double)k,(double)ipj);
-                for (k=1;k<=nl;k++) sum += pow((double)-k,(double)ipj);
-                mm=FMIN(ipj,2*m-ipj);
-                for (imj = -mm;imj<=mm;imj+=2) a[1+(ipj+imj)/2][1+(ipj-imj)/2]=sum;
-        }
-        ludcmp(a,m+1,indx,&d);
-        for (j=1;j<=m+1;j++) b[j]=0.0;
-        b[ld+1]=1.0;
-        lubksb(a,m+1,indx,b);
-        for (kk=1;kk<=np;kk++) c[kk]=0.0;
-        for (k = -nl;k<=nr;k++) {
-                sum=b[1];
-                fac=1.0;
-                for (mm=1;mm<=m;mm++) sum += b[mm+1]*(fac *= k);
-                kk=((np-k) % np)+1;
-                // c[kk]=sum;
-                c[i] = sum;
-                i++;
-        }
+    indx=ivector(1,m+1);
+    a=matrix(1,m+1,1,m+1);
+    b=vector(1,m+1);
+    for (ipj=0;ipj<=(m << 1);ipj++) {
+        sum=(ipj ? 0.0 : 1.0);
+        for (k=1;k<=nr;k++)
+            sum += pow((double)k,(double)ipj);
+
+        for (k=1;k<=nl;k++)
+            sum += pow((double)-k,(double)ipj);
+
+        mm=FMIN(ipj,2*m-ipj);
+
+        for (imj = -mm;imj<=mm;imj+=2)
+            a[1+(ipj+imj)/2][1+(ipj-imj)/2]=sum;
+    }
+    ludcmp(a,m+1,indx,&d);
+    for (j=1;j<=m+1;j++)
+        b[j]=0.0;
+
+    b[ld+1]=1.0;
+    lubksb(a,m+1,indx,b);
+    for (kk=1;kk<=np;kk++)
+        c[kk]=0.0;
+
+    for (k = -nl;k<=nr;k++) {
+        sum=b[1];
+        fac=1.0;
+        for (mm=1;mm<=m;mm++)
+            sum += b[mm+1]*(fac *= k);
+        kk=((np-k) % np)+1;
+        // c[kk]=sum;
+        c[i] = sum;
+        i++;
+    }
 
 #ifndef DEBUG_SAVGOL
-        int i;
-        for (i = 1; i < np; i++) {
-            printf("%f\n", c[i]);
-        }
+    for (i = 1; i < np; i++) {
+        printf("%f\n", c[i]);
+    }
 #endif
 
-        free_vector(b,1,m+1);
-        free_matrix(a,1,m+1,1,m+1);
-        free_ivector(indx,1,m+1);
+    free_vector(b,1,m+1);
+    free_matrix(a,1,m+1,1,m+1);
+    free_ivector(indx,1,m+1);
 }
 
 float *convolve(float *A, float *B, int lenA, int lenB, int *lenC)
@@ -243,19 +253,19 @@ float *convolve(float *A, float *B, int lenA, int lenB, int *lenC)
     Pr_L default value: 256
     coeff_size default: 256-1
 */
-double * fir_coef(unsigned coeff_size, double window, int Pr_L)
+float * fir_coef(unsigned coeff_size, float window, int Pr_L)
 {
     /* FIR filter
     Return an array of 1 X 256
     */
     unsigned odd, i, j, nhlf, i1;
-    double f1, gain, c1;
-    double wind[Pr_L],xn[Pr_L/2],b[Pr_L/2],c[Pr_L/2],c3[Pr_L/2];
-    double *bb;
+    float f1, gain, c1;
+    float wind[Pr_L],xn[Pr_L/2],b[Pr_L/2],c[Pr_L/2],c3[Pr_L/2];
+    float *bb;
 
-    bb = (double *) malloc(sizeof(double) * Pr_L);
+    bb = (float *) malloc(sizeof(float) * Pr_L);
 
-    gain = 0.0000000;
+    gain = 0.0;
     coeff_size = coeff_size+1;
     odd = coeff_size - (coeff_size/2)*2; /* odd = rem(N,2) */
 
