@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define DEBUG_SAVGOL
 #define NR_END 1
@@ -175,6 +176,7 @@ savgol(data, size(data), int 20, int 20, int 0, int 2)
 
 void savgol(float *c, int np, int nl, int nr, int ld, int m)
 {
+        int i = 0;
         int imj,ipj,j,k,kk,mm,*indx;
         float d,fac,sum,**a,*b;
 
@@ -201,7 +203,9 @@ void savgol(float *c, int np, int nl, int nr, int ld, int m)
                 fac=1.0;
                 for (mm=1;mm<=m;mm++) sum += b[mm+1]*(fac *= k);
                 kk=((np-k) % np)+1;
-                c[kk]=sum;
+                // c[kk]=sum;
+                c[i] = sum;
+                i++;
         }
 
 #ifndef DEBUG_SAVGOL
@@ -216,34 +220,37 @@ void savgol(float *c, int np, int nl, int nr, int ld, int m)
         free_ivector(indx,1,m+1);
 }
 
-
-int convolve1D(float* in, float* out, int dataSize, float* kernel, int kernelSize)
+float *convolve(float *A, float *B, int lenA, int lenB, int *lenC)
 {
-    int i, j, k;
+    int nconv;
+    int i, j, i1;
+    float tmp;
+    float *C;
 
-    // check validity of params
-    if(!in || !out || !kernel) return -1;
-    if(dataSize <=0 || kernelSize <= 0) return -1;
+    //allocated convolution array
+    nconv = lenA+lenB-1;
+    C = (float*) calloc(nconv, sizeof(float));
 
-    // start convolution from out[kernelSize-1] to out[dataSize-1] (last)
-    for(i = kernelSize-1; i < dataSize; ++i)
+    //convolution process
+    for (i=0; i<nconv; i++)
     {
-        out[i] = 0;                             // init to 0 before accumulate
+        i1 = i;
+        tmp = 0.0;
+        for (j=0; j<lenB; j++)
+        {
+            if(i1>=0 && i1<lenA)
+                tmp = tmp + (A[i1]*B[j]);
 
-        for(j = i, k = 0; k < kernelSize; --j, ++k)
-            out[i] += in[j] * kernel[k];
+            i1 = i1-1;
+            C[i] = tmp;
+        }
     }
 
-    // convolution from out[0] to out[kernelSize-2]
-    for(i = 0; i < kernelSize - 1; ++i)
-    {
-        out[i] = 0;                             // init to 0 before sum
+    //get length of convolution array
+    (*lenC) = nconv;
 
-        for(j = i, k = 0; j >= 0; --j, ++k)
-            out[i] += in[j] * kernel[k];
-    }
-
-    return 1;
+    //return convolution array
+    return(C);
 }
 
 void do_help()
@@ -274,31 +281,29 @@ int main(int argc, char const *argv[])
     if((fp = fopen(input_file, "r")) != NULL) {
         while (fgets(line, sizeof line, fp) != NULL) {
             input_data[input_index++] = atof(line);
-            input_index++;
         }
+        fclose(fp);
     } else {
-        printf("\n file not found! \n");
-        exit(-1);
+            perror(input_file);
     }
+
 
     float *kernel = (float *) malloc(sizeof(float)*11);
     savgol(kernel, 11, 5, 5, 0, 2);
 
-    float *output_data = (float *) malloc(sizeof(float)*150);
-    filter(10, a, c, 150, input_data, output_data);
-    for (i = 0; i < input_index; i++)
-        printf("%f\n", output_data[i]);
 
-#if 0
-    float *output_data = (float *) malloc(sizeof(float)*150);
-    convolve1D(input_data, output_data, input_index, kernel, 11);
-    for (i = 0; i < input_index; i++)
+
+    int len_output = 0;
+    float *output_data;
+    output_data = convolve(input_data, kernel, 150, 11, &len_output);
+    for (i = 0; i < len_output; i ++) {
         printf("%f\n", output_data[i]);
-#endif
+    }
+
 
     free(input_data);
-    free(output_data);
-    free(kernel);
+    // free(output_data);
+    // free(kernel);
 
     return 0;
 }
