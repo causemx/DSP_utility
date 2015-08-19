@@ -8,7 +8,7 @@
     Pr_L default value: 256
     coeff_size default: 256-1
 */
-double * fir1(unsigned coeff_size, double window, int Pr_L)
+double * fir_coef(unsigned coeff_size, double window, int Pr_L)
 {
     /* FIR filter
     Return an array of 1 X 256
@@ -39,30 +39,22 @@ double * fir1(unsigned coeff_size, double window, int Pr_L)
 
     if(odd)
         b[0] = 2 * c1;
-
     for (i=0; i < nhlf; i++)
         xn[i] = i + 0.5 * (1 - odd);
-
     for (i=0; i < nhlf; i++)
         c[i] = PI * xn[i];
-
     for (i=0; i < nhlf; i++)
         c3[i] = 2 * c1 * c[i];
-
     /* b(i1:nhlf)=(sin(c3)./c) */
     for (i=0; i < nhlf; i++)
         b[i] = sin(c3[i]) / c[i];
-
     /* bb = real([b(nhlf:-1:i1) b(1:nhlf)].*wind(:)') */
     for (i=0,j=nhlf-1; i < nhlf; i++, j--)
         bb[i] = b[j];
-
     for (i=nhlf,j=0; i < Pr_L; i++,j++)
         bb[i] = b[j];
-
     for (i=0; i < Pr_L; i++)
         bb[i] = bb[i] * wind[i];
-
     /* gain = abs(polyval(b,1)); */
     for (i=0; i < Pr_L; i++)
         gain += bb[i];
@@ -95,56 +87,3 @@ int filter(int order, float *a, float *b, int np, float *in, float *out)
 
     return 0;
 } /* end of filter */
-
-sma_result_t sma(enum Action action, ...)
-{
-    va_list vl;
-    sma_result_t ret;
-    sma_obj_t *obj;
-    double val;
-    va_start(vl, action);
-
-    switch (action) {
-    case SMA_NEW:
-        // initialize a new result
-        ret.handle = malloc(sizeof(sma_obj_t));
-        ret.handle->sma = 0.0;
-        ret.handle->sum = 0.0;
-        ret.handle->period = va_arg(vl, int);
-        ret.handle->values = malloc(ret.handle->period * sizeof(double));
-        ret.handle->index = 0;
-        break;
-    case SMA_FREE:
-        ret.handle = va_arg(vl, sma_obj_t *);
-        free(ret.handle->values);
-        free(ret.handle);
-        ret.handle = NULL;
-        break;
-    case SMA_VALUES:
-        obj = va_arg(vl, sma_obj_t *);
-        ret.values = obj->values;
-        break;
-    case SMA_MEAN:
-        obj = va_arg(vl, sma_obj_t *);
-        ret.sma = obj->sma;
-        break;
-    case SMA_ADD:
-        obj = va_arg(vl, sma_obj_t *);
-        val = va_arg(vl, double);
-        if (obj->index < obj->period) {
-            obj->values[obj->index++] = val;
-            obj->sum += val;
-            obj->sma = obj->sum / obj->index;
-        } else {
-            obj->sum -= obj->values[obj->index % obj->period];
-            obj->sum += val;
-            obj->sma = obj->sum / obj->period;
-            obj->values[obj->index % obj->period] = val;
-            obj->index++;
-        }
-        ret.sma = obj->sma;
-        break;
-    }
-    va_end(vl);
-    return ret;
-}

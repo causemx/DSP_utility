@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define DEBUG_SAVGOL
+// #define DEBUG_SAVGOL
 #define NR_END 1
 #define FREE_ARG char*
 #define TINY 1.0e-20;
@@ -290,7 +290,6 @@ int main(int argc, char const *argv[])
 
     float *kernel = (float *) malloc(sizeof(float)*11);
     savgol(kernel, 11, 5, 5, 0, 2);
-
 
 
     int len_output = 0;
