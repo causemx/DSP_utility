@@ -4,6 +4,8 @@
 
 #include "algo_resp.h"
 
+// #define DEBUG_FOO
+
 int do_help()
 {
     printf("usage: ./foo [input_file]\n");
@@ -13,10 +15,10 @@ int do_help()
 int main(int argc, char const *argv[])
 {
     FILE *fp;
-    const char *input_file;
-    char line[32];
     int i, index = 0;
-    float *input_data = (float *) malloc(sizeof(float)*256);
+    char line[32];
+    const char *input_file;
+    float *input_data = (float *) malloc(sizeof(float)*2520);
 
     if (argc > 1) {
         input_file = argv[1];
@@ -33,16 +35,62 @@ int main(int argc, char const *argv[])
         input_data[index++] = atof(line);
     }
 
-    for (i = 0; i < index; i++) {
+#ifdef DEBUG_FOO
+    for (i = 0; i < index; i++)
         printf("%f\n", input_data[i]);
+#endif
+
+    int order_fir_coef = 128;
+    // retrive the FIR coefficients(parameter b in 1d-filter)
+    float *my_fir_coef = (float *) malloc(sizeof(float)*order_fir_coef);
+    my_fir_coef = fir_coef((order_fir_coef-1), 0.8, order_fir_coef);
+
+#ifdef DEBUG_FOO
+    printf("dump fir_coef\n");
+    for (i = 0; i < order_fir_coef; i++)
+        printf("%f\n", my_fir_coef[i]);
+#endif
+
+    // retrive the parameter a in 1-d filter
+    float my_fir_coef_a[order_fir_coef];
+    for (i = 0; i < order_fir_coef; i++) {
+        if (i) my_fir_coef_a[i] = 0;
+        else my_fir_coef_a[i] = 1;
     }
 
-    float *my_fir_coef = (float *) malloc(sizeof(float)*128);
-    my_fir_coef = fir_coef((128-1), 0.8, 128);
+    int len_sample_data = 2520;
+    float *fir_filter_output = (float *) malloc(sizeof(float)*2520);
+    filter(order_fir_coef, my_fir_coef_a, my_fir_coef, len_sample_data, input_data, fir_filter_output);
+
+#ifdef DEBUG_FOO
+    printf("dump fir_output\n");
+    for (i = 0; i < len_sample_data; i++)
+        printf("%d, %f\n", i, fir_filter_output[i]);
+#endif
+
+    float *kernel = (float *) malloc(sizeof(float)*41);
+    savgol(kernel, 41, 20, 20, 0, 3);
+#ifdef DEBUG_FOO
+    printf("dump savgol kernel\n");
+    for (i = 0; i < 41; i++)
+        printf("%d, %f\n", i, kernel[i]);
+#endif
+
+    int len_savgol_output = 0;
+    float *out_savgol_filter;
+    out_savgol_filter = convolve(fir_filter_output, kernel, 2520, 41, &len_savgol_output);
+
+    printf("dump savgol result\n");
+    for (i = 0; i < len_savgol_output; i++)
+        printf("%f\n", out_savgol_filter[i]);
+
 
     fclose(fp);
+    free(kernel);
     free(input_data);
     free(my_fir_coef);
+    free(fir_filter_output);
+    free(out_savgol_filter);
 
     return 0;
 }

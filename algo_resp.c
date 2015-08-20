@@ -204,12 +204,6 @@ void savgol(float *c, int np, int nl, int nr, int ld, int m)
         i++;
     }
 
-#ifndef DEBUG_SAVGOL
-    for (i = 1; i < np; i++) {
-        printf("%f\n", c[i]);
-    }
-#endif
-
     free_vector(b,1,m+1);
     free_matrix(a,1,m+1,1,m+1);
     free_ivector(indx,1,m+1);
@@ -248,12 +242,14 @@ float *convolve(float *A, float *B, int lenA, int lenB, int *lenC)
     return(C);
 }
 
+#define PI 3.14159265
+
 /**
     Get the FIR filter coefficients.
     Pr_L default value: 256
     coeff_size default: 256-1
 */
-float * fir_coef(unsigned coeff_size, float window, int Pr_L)
+float * fir_coef(unsigned coef_size, float window, int Pr_L)
 {
     /* FIR filter
     Return an array of 1 X 256
@@ -266,18 +262,18 @@ float * fir_coef(unsigned coeff_size, float window, int Pr_L)
     bb = (float *) malloc(sizeof(float) * Pr_L);
 
     gain = 0.0;
-    coeff_size = coeff_size+1;
-    odd = coeff_size - (coeff_size/2)*2; /* odd = rem(N,2) */
+    coef_size = coef_size+1;
+    odd = coef_size - (coef_size/2)*2; /* odd = rem(N,2) */
 
     /*wind = hamming(N);*/
     for (i=0; i < Pr_L; i++)
     {
-        wind[i] = 0.54 - 0.46 * cos ((2 * PI * i) / (N-1));
+        wind[i] = 0.54 - 0.46 * cos ((2 * PI * i) / (coef_size-1));
     }
 
-    f1 = Wn / 2.0;
+    f1 = window / 2.0;
     c1 = f1;
-    nhlf = (coeff_size+1) / 2;
+    nhlf = (coef_size+1) / 2;
     i1 = odd + 1;
 
     /* Lowpass */
@@ -314,7 +310,7 @@ int filter(int order, float *a, float *b, int np, float *in, float *out)
 {
     int i, j;
     out[0] = b[0] * in[0];
-    for (i = 0; i < ord; i++) {
+    for (i = 0; i < order; i++) {
         out[i] = 0.0;
         for (j = 0;j < i; j++)
             out[i] = out[i] + b[j] * in[i-j];
@@ -322,11 +318,11 @@ int filter(int order, float *a, float *b, int np, float *in, float *out)
             out[i] = out[i] - a[j+1] * out[i-j-1];
     }
     // end of initial part
-    for (i = ord; i < np+1; i++) {
+    for (i = order; i < np+1; i++) {
         out[i] = 0.0;
-        for (j = 0; j < ord; j++)
+        for (j = 0; j < order; j++)
             out[i] = out[i] + b[j] * in[i-j];
-        for (j = 0;j < ord-1; j++)
+        for (j = 0;j < order-1; j++)
             out[i] = out[i] - a[j+1] * out[i-j-1];
     }
 
