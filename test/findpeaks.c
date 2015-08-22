@@ -1,59 +1,47 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "findpeaks.h"
+
+void cumsum(int *, int *, size_t);
+void ones(int *, size_t);
+void copy_array(int *, int *, size_t);
 
 
-
-void dump_array(int *src, size_t count)
+void cumsum(int *input, int *output, size_t length)
 {
-    printf("start dumping array...\n");
     int i;
-    for (i = 0; i < count; i++) {
-        printf("index: %d, value: %d\n", i, src[i]);
+    int sum = input[0];
+    output[0] = sum;
+    for (i = 1; i < length; i++) {
+        sum += input[i];
+        output[i] = sum;
     }
 }
 
-int cumsum(int *src, int *target, size_t count)
+void ones(int *input, size_t length)
 {
     int i;
-    int sum = src[0];
-    target[0] = sum;
-    // printf("cumsum debug: %d\n", target[0]);
-    for (i = 1; i < count; i++) {
-        sum += src[i];
-        target[i] = sum;
-    //    printf("cumsum debug: %d\n", target[i]);
-    }
-    return 0;
+    for (i = 0; i < length; i++)
+        input[i] = 1;
 }
 
-int ones(int *src, size_t count)
+void copy_array(int *input, int *output, size_t length)
 {
     int i;
-    for (i = 0; i < count; i++) {
-        src[i] = 1;
-    }
-    return 0;
-}
-
-int copy_array(int *src, int *target, size_t length)
-{
-    // length of two array must be same.
-    int i;
-    for (i = 0; i < length; i++) {
-        target[i] = src[i];
-    }
-    return 0;
+    for (i = 0; i < length; i++)
+        output[i] = input[i];
 }
 
 #define ARRAY_INITIAL_TORRENT 100
 
-int findpeaks(double *val, int count, int width)
+int findpeaks(float *input, float *output, int count, int *output_length,
+    int width, float height)
 {
     int i = 0;
     int dx_length = count - 1;
-    double dx[dx_length];
+    float dx[dx_length];
     for (i = 0; i < dx_length; i++) {
-        dx[i] = val[i+1] - val[i];
+        dx[i] = input[i+1] - input[i];
         // printf("index: %i, dx: %lf\n", i, dx[i]);
     }
 
@@ -133,16 +121,18 @@ int findpeaks(double *val, int count, int width)
 
 
     int k_index = 0;
-    int *k = malloc(ARRAY_INITIAL_TORRENT * sizeof(int));
+    // int *k = malloc(ARRAY_INITIAL_TORRENT * sizeof(int));
     for (i = 0; i < count; i++) {
         if ((rs[i] < fs[i]) && (fq[i] < rq[i]) && ((fq[i] - rs[i])/2 ==0))
-            k[k_index++] = i;
+            if (input[i] > height) output[k_index++] = i;
     }
 
-    /* find the region which distance over width*/
+    (*output_length) = k_index;
 
+    /* find the region which distance over width*/
     int j_index = 0;
     int *j = malloc(ARRAY_INITIAL_TORRENT * sizeof(int));
+#if 0
     for (i = 0; i < k_index; i++) {
         if (k[i+1] - k[i] <= width) {
             j[j_index++] = k[i];
@@ -167,16 +157,15 @@ int findpeaks(double *val, int count, int width)
     }
 
     dump_array(j, j_index);
-
+#endif
 
     free(r);
     free(f);
-    free(k);
     free(j);
     return 0;
 }
 
-double raw_data[50] = {
+float raw_data[50] = {
     0,
     0.852321569719618,
     0.891559230411004,
@@ -231,6 +220,12 @@ double raw_data[50] = {
 
 int main(int argc, char const *argv[])
 {
-    findpeaks(raw_data, 50, 10);
+    int i, ret_length = 0;
+    float *ret = (float *) malloc(sizeof(float)*50);
+    findpeaks(raw_data, ret, 50, &ret_length, 10, 0.5);
+    for (i = 0; i < ret_length; i++)
+        printf("%f\n", ret[i]);
+
+    free(ret);
     return 0;
 }
