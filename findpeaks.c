@@ -34,7 +34,7 @@ void copy_array(int *input, int *output, size_t length)
 
 #define ARRAY_INITIAL_TORRENT 100
 
-int findpeaks(float *input, float *output, int count, int *output_length,
+int findpeaks(float *input, int *output, int count, int *output_length,
     int width, float height)
 {
     int i = 0;
@@ -119,49 +119,25 @@ int findpeaks(float *input, float *output, int count, int *output_length,
         fp[f[i]+1] = df[i+1] -1;
     cumsum(fp, fq, count);
 
-
+    int interval;
+    int last_interval = 0;
     int k_index = 0;
-    // int *k = malloc(ARRAY_INITIAL_TORRENT * sizeof(int));
     for (i = 0; i < count; i++) {
         if ((rs[i] < fs[i]) && (fq[i] < rq[i]) && ((fq[i] - rs[i])/2 ==0))
             if (input[i] > height) output[k_index++] = i;
     }
-
+    for (i = 1; i < k_index; i++) {
+        interval = output[i] - output[i-1];
+        last_interval = last_interval + interval;
+        if (last_interval > width)
+            last_interval = 0;
+        else
+            output[i] = -1;
+    }
     (*output_length) = k_index;
-
-    /* find the region which distance over width*/
-    int j_index = 0;
-    int *j = malloc(ARRAY_INITIAL_TORRENT * sizeof(int));
-#if 0
-    for (i = 0; i < k_index; i++) {
-        if (k[i+1] - k[i] <= width) {
-            j[j_index++] = k[i];
-        }
-    }
-
-    dump_array(j, j_index);
-
-    int j_diff[j_index-1];
-    for (i = 0; i < j_index-1; i++)
-        j_diff[i] = j[i+1] - j[i];
-
-    int delta_p = 0;
-    for (i = 1; i < j_index-1; i++) {
-        delta_p += j_diff[i-1];
-        printf("delta_p:%d\n", delta_p);
-        if (delta_p <= width) {
-            j[i] = -1;
-        } else {
-            delta_p = 0;
-        }
-    }
-
-    dump_array(j, j_index);
-#endif
 
     free(r);
     free(f);
-    free(j);
     return 0;
 }
 
@@ -221,10 +197,10 @@ float raw_data[50] = {
 int main(int argc, char const *argv[])
 {
     int i, ret_length = 0;
-    float *ret = (float *) malloc(sizeof(float)*50);
+    int *ret = (int *) malloc(sizeof(int)*50);
     findpeaks(raw_data, ret, 50, &ret_length, 10, 0.5);
     for (i = 0; i < ret_length; i++)
-        printf("%f\n", ret[i]);
+        printf("%d\n", ret[i]);
 
     free(ret);
     return 0;
