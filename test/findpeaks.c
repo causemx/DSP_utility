@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 #include "findpeaks.h"
 
 void cumsum(int *, int *, size_t);
@@ -33,7 +32,7 @@ void copy_array(int *input, int *output, size_t length)
         output[i] = input[i];
 }
 
-#define ARRAY_INITIAL_TORRENT 2600
+#define ARRAY_INITIAL_TORRENT 100
 
 int findpeaks(float *input, int *output, int count, int *output_length,
     int width, float height)
@@ -124,22 +123,17 @@ int findpeaks(float *input, int *output, int count, int *output_length,
     int last_interval = 0;
     int k_index = 0;
     for (i = 0; i < count; i++) {
-        // if ((rs[i] < fs[i]) && (fq[i] < rq[i]) && (floor((fq[i] - rs[i])/2) == 0))
-        if ((rs[i] < fs[i]) && (fq[i] < rq[i]))
-            // printf("origin:%f, floor: %f\n", ((float)rs[i] - (float)fq[i])/2,floor(((float)rs[i] - (float)fq[i])/2));
+        if ((rs[i] < fs[i]) && (fq[i] < rq[i]) && ((fq[i] - rs[i])/2 ==0))
             if (input[i] > height) output[k_index++] = i;
     }
-
     for (i = 1; i < k_index; i++) {
         interval = output[i] - output[i-1];
-        last_interval += interval;
-        printf("%d\n", last_interval);
+        last_interval = last_interval + interval;
         if (last_interval > width)
             last_interval = 0;
         else
             output[i] = -1;
     }
-
     (*output_length) = k_index;
 
     free(r);

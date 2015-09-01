@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "algo_resp.h"
+#include "findpeaks.h"
 
 // #define DEBUG_FOO
 
@@ -80,10 +81,21 @@ int main(int argc, char const *argv[])
     float *out_savgol_filter;
     out_savgol_filter = convolve(fir_filter_output, kernel, 2520, 41, &len_savgol_output);
 
+#ifdef DEBUG_FOO
     printf("dump savgol result\n");
     for (i = 0; i < len_savgol_output; i++)
         printf("%f\n", out_savgol_filter[i]);
+#endif
 
+    int len_output_peaks = 0;
+    int* output_peaks = (int *) malloc(sizeof(int)*len_savgol_output);
+    findpeaks(out_savgol_filter, output_peaks, len_savgol_output, &len_output_peaks, 100, 100);
+#if 0
+    printf("len_output: %d\n", len_output_peaks);
+    for (i = 0; i < len_output_peaks; i++) {
+        printf("%d\n", output_peaks[i]);
+    }
+#endif
 
     fclose(fp);
     free(kernel);
@@ -91,6 +103,7 @@ int main(int argc, char const *argv[])
     free(my_fir_coef);
     free(fir_filter_output);
     free(out_savgol_filter);
+    free(output_peaks);
 
     return 0;
 }
