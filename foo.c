@@ -88,12 +88,16 @@ int main(int argc, char const *argv[])
 #endif
 
     int len_output_peaks = 0;
-    int* output_peaks = (int *) malloc(sizeof(int)*len_savgol_output);
+    // int* output_peaks = (int *) malloc(sizeof(int)*len_savgol_output);
+    Peak* output_peaks = (Peak *) malloc(sizeof(Peak)*len_savgol_output);
     findpeaks(out_savgol_filter, output_peaks, len_savgol_output, &len_output_peaks, 100, 100);
-#if 0
+
     printf("len_output: %d\n", len_output_peaks);
+
+#if 0
     for (i = 0; i < len_output_peaks; i++) {
-        printf("%d\n", output_peaks[i]);
+        Peak peak = output_peaks[i];
+        printf("is_peak: %d, location: %d\n", peak.is_peak, peak.location);
     }
 #endif
 
