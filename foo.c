@@ -94,12 +94,12 @@ int main(int argc, char const *argv[])
 
     printf("len_output: %d\n", len_output_peaks);
 
-#if 0
+
     for (i = 0; i < len_output_peaks; i++) {
         Peak peak = output_peaks[i];
         printf("is_peak: %d, location: %d\n", peak.is_peak, peak.location);
     }
-#endif
+
 
     fclose(fp);
     free(kernel);

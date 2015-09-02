@@ -124,9 +124,7 @@ int findpeaks(float *input, Peak *output, int count, int *output_length,
     int last_interval = 0;
     int k_index = 0;
     for (i = 0; i < count; i++) {
-        // if ((rs[i] < fs[i]) && (fq[i] < rq[i]) && (floor((fq[i] - rs[i])/2) == 0))
         if ((rs[i] < fs[i]) && (fq[i] < rq[i])) {
-            // printf("origin:%f, floor: %f\n", ((float)rs[i] - (float)fq[i])/2,floor(((float)rs[i] - (float)fq[i])/2));
             if (input[i] > height) {
                 // output[k_index++] = i;
                 Peak *peak = &output[k_index];
@@ -140,12 +138,14 @@ int findpeaks(float *input, Peak *output, int count, int *output_length,
     for (i = 1; i < k_index; i++) {
         interval = output[i].location - output[i-1].location;
         last_interval += interval;
-        printf("last_interval: %d\n", last_interval);
-        if (last_interval > width)
+        // printf("last_interval: %d\n", last_interval);
+        if (last_interval > width) {
             last_interval = 0;
-        else
-            (output+i)->is_peak = 0;
+        } else {
+            Peak *peak = &output[i];
+            peak->is_peak = 0;
             // output[i] = -1;
+        }
     }
 
     (*output_length) = k_index;
